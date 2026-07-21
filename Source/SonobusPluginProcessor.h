@@ -194,14 +194,18 @@ public:
 
     struct AudioCodecFormatInfo {
         AudioCodecFormatInfo() {}
-        AudioCodecFormatInfo(int bitdepth_) : codec(CodecPCM), bitdepth(bitdepth_), min_preferred_blocksize(16)  { computeName(); }
+        AudioCodecFormatInfo(int bytedepth_) : codec(CodecPCM), bytedepth(bytedepth_), min_preferred_blocksize(16)  {
+            computePCMBitrate();
+            computeName();
+        }
         AudioCodecFormatInfo(int bitrate_, int complexity_, int signaltype, int minblocksize=120) :  codec(CodecOpus), bitrate(bitrate_), complexity(complexity_), signal_type(signaltype), min_preferred_blocksize(minblocksize) { computeName(); }
         void computeName();
-        
+        void computePCMBitrate();
+
         String name;
         AudioCodecFormatCodec codec;
         // PCM options
-        int bitdepth = 2; // bytes
+        int bytedepth = 2;
         // opus options
         int bitrate = 0;
         int complexity = 0;
@@ -281,6 +285,7 @@ public:
     static String paramDefaultAutoNetbuf;
     static String paramDefaultNetbufMs;
     static String paramDefaultSendQual;
+    static String paramMaxSendQual;
     static String paramMainSendMute;
     static String paramMainRecvMute;
     static String paramMetEnabled;
@@ -594,6 +599,9 @@ public:
     void setDefaultAudioCodecFormat(int formatIndex);
     int getDefaultAudioCodecFormat() const { return mDefaultAudioFormatIndex; }
 
+    void setMaxRequestableAudioCodecFormat(int formatIndex);
+    int getMaxRequestableAudioCodecFormat() const { return mMaxRequestableAudioFormatIndex; }
+
     void setChangingDefaultAudioCodecSetsExisting(bool flag) { mChangingDefaultAudioCodecChangesAll = flag; }
     bool getChangingDefaultAudioCodecSetsExisting() const { return mChangingDefaultAudioCodecChangesAll;}
 
@@ -603,6 +611,7 @@ public:
     
     String getAudioCodeFormatName(int formatIndex) const;
     bool getAudioCodeFormatInfo(int formatIndex, AudioCodecFormatInfo & retinfo) const;
+    int getBitrateForFormatIndex(int formatIndex) const;
 
     void setDefaultAutoresizeBufferMode(AutoNetBufferMode flag);
     AutoNetBufferMode getDefaultAutoresizeBufferMode() const { return (AutoNetBufferMode) defaultAutoNetbufMode; }
@@ -964,7 +973,10 @@ private:
 
     bool connectRemotePeerRaw(const void * sockaddr, int addrlen, AooId userid=kAooIdInvalid, const String & username = "", const String & groupname = "", AooId groupid=kAooIdInvalid,  bool reciprocate=true);
 
-    int findFormatIndex(AudioCodecFormatCodec codec, int bitrate, int bitdepth);
+
+    int validateRemoteSourceFormatIndex(RemotePeer * remote, int format);
+
+    int findFormatIndex(AudioCodecFormatCodec codec, int bitrate, int bytedepth);
 
     void ensureBuffers(int samples);
 
@@ -1202,8 +1214,10 @@ private:
     
     Array<AudioCodecFormatInfo> mAudioFormats;
     int mDefaultAudioFormatIndex = 4;
-    
+    int mMaxRequestableAudioFormatIndex = -1;
+
     RangedAudioParameter * mDefaultAudioFormatParam;
+    RangedAudioParameter * mMaxAudioFormatParam;
 
 
 

@@ -118,9 +118,11 @@ protected:
     std::unique_ptr<Slider> mBufferTimeSlider;
 
     std::unique_ptr<SonoChoiceButton> mOptionsAutosizeDefaultChoice;
-    std::unique_ptr<SonoChoiceButton> mOptionsFormatChoiceDefaultChoice;
+    std::unique_ptr<SonoChoiceButton> mOptionsDefaultFormatChoice;
+    std::unique_ptr<SonoChoiceButton> mOptionsMaxFormatChoice;
     std::unique_ptr<Label>  mOptionsAutosizeStaticLabel;
-    std::unique_ptr<Label>  mOptionsFormatChoiceStaticLabel;
+    std::unique_ptr<Label>  mOptionsDefaultFormatChoiceStaticLabel;
+    std::unique_ptr<Label>  mOptionsMaxFormatChoiceStaticLabel;
 
     std::unique_ptr<ToggleButton> mOptionsUseSpecificUdpPortButton;
     std::unique_ptr<TextEditor>  mOptionsUdpPortEditor;
@@ -171,6 +173,7 @@ protected:
     FlexBox optionsBox;
     FlexBox optionsNetbufBox;
     FlexBox optionsSendQualBox;
+    FlexBox optionsMaxSendQualBox;
     FlexBox optionsHearlatBox;
     FlexBox optionsUdpBox;
     FlexBox optionsDynResampleBox;

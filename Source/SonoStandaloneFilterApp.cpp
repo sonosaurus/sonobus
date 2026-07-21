@@ -83,11 +83,11 @@ public:
 
         options.applicationName     = getApplicationName();
         options.filenameSuffix      = ".settings";
-        options.osxLibrarySubFolder = "Application Support/SonoBus";
+        options.osxLibrarySubFolder = "Application Support";
        #if JUCE_LINUX
-        options.folderName          = "~/.config/sonobus";
+        options.folderName          = ".config/sonobus2";
        #else
-        options.folderName          = "";
+        options.folderName          = "SonoBus2";
        #endif
 
         appProperties.setStorageParameters (options);

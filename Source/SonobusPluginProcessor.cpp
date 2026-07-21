@@ -62,6 +62,7 @@ String SonobusAudioProcessor::paramBufferTime  ("buffertime");
 String SonobusAudioProcessor::paramDefaultNetbufMs ("defnetbuf");
 String SonobusAudioProcessor::paramDefaultAutoNetbuf ("defnetauto");
 String SonobusAudioProcessor::paramDefaultSendQual ("defsendqual");
+String SonobusAudioProcessor::paramMaxSendQual ("maxsendqual");
 String SonobusAudioProcessor::paramMainSendMute ("mastsendmute");
 String SonobusAudioProcessor::paramMainRecvMute ("mastrecvmute");
 String SonobusAudioProcessor::paramMainInMute ("mastinmute");
@@ -148,6 +149,7 @@ static String numMultiChanGroupsKey("numMultiChanGroups");
 static String modifiedChanGroupsKey("modifiedChanGroups");
 
 static String channelLayoutsKey("ChannelLayouts");
+static String peerUserFormatKey("PeerUserFormat");
 
 
 static String peerStateCacheMapKey("PeerStateCacheMap");
@@ -737,6 +739,7 @@ mState (*this, &mUndoManager, "SonoBusAoO",
                                           [](float v, int maxlen) -> String { return String(v, 0) + " ms"; },
                                           [](const String& s) -> float { return s.getFloatValue(); }),
     std::make_unique<AudioParameterBool>(ParameterID(paramSyncMetToFilePlayback, 1), TRANS ("Sync Met to File Playback"), false),
+    std::make_unique<AudioParameterInt>(ParameterID(paramMaxSendQual, 1), TRANS ("Max Send Format"), -1, 14, mMaxRequestableAudioFormatIndex),
 
 })
 {
@@ -749,6 +752,7 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     mState.addParameterListener (paramDefaultAutoNetbuf, this);
     mState.addParameterListener (paramDefaultNetbufMs, this);
     mState.addParameterListener (paramDefaultSendQual, this);
+    mState.addParameterListener (paramMaxSendQual, this);
     mState.addParameterListener (paramMainSendMute, this);
     mState.addParameterListener (paramMainRecvMute, this);
     mState.addParameterListener (paramMetEnabled, this);
@@ -825,6 +829,7 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     
     mDefaultAutoNetbufModeParam = mState.getParameter(paramDefaultAutoNetbuf);
     mDefaultAudioFormatParam = mState.getParameter(paramDefaultSendQual);
+    mMaxAudioFormatParam = mState.getParameter(paramMaxSendQual);
 
     const bool isplugin = !JUCEApplicationBase::isStandaloneApp();
     if (isplugin) {
@@ -1670,22 +1675,27 @@ String SonobusAudioProcessor::getCurrentJoinedGroup() const {
     return mCurrentJoinedGroup;     
 }
 
+void SonobusAudioProcessor::AudioCodecFormatInfo::computePCMBitrate()
+{
+    bitrate = 8 * bytedepth * 48000; // hack nominal sample rate into calc
+}
+
 void SonobusAudioProcessor::AudioCodecFormatInfo::computeName()
 {
     if (codec == SonobusAudioProcessor::CodecOpus) {
         name = String::formatted("%d kbps/ch", bitrate/1000);
     }
     else {
-        if (bitdepth == 2) {
+        if (bytedepth == 2) {
             name = "PCM 16 bit";
         }
-        else if (bitdepth == 3) {
+        else if (bytedepth == 3) {
             name = "PCM 24 bit";
         }
-        else if (bitdepth == 4) {
+        else if (bytedepth == 4) {
             name = "PCM 32 bit float";
         }
-        else if (bitdepth == 8) {
+        else if (bytedepth == 8) {
             name = "PCM 64 bit float";
         }
     }
@@ -1712,9 +1722,10 @@ void SonobusAudioProcessor::initFormats()
     //mAudioFormats.add(AudioCodecFormatInfo(CodecPCM, 8)); // insanity!
 
     mDefaultAudioFormatIndex = 4; // 96kpbs/ch Opus
+    mMaxRequestableAudioFormatIndex = -1; // any allowed
 }
 
-int SonobusAudioProcessor::findFormatIndex(SonobusAudioProcessor::AudioCodecFormatCodec codec, int bitrate, int bitdepth)
+int SonobusAudioProcessor::findFormatIndex(SonobusAudioProcessor::AudioCodecFormatCodec codec, int bitrate, int bytedepth)
 {
     for (int i=0; i < mAudioFormats.size(); ++i) {
         const auto & format = mAudioFormats.getReference(i);
@@ -1724,7 +1735,7 @@ int SonobusAudioProcessor::findFormatIndex(SonobusAudioProcessor::AudioCodecForm
                     return i;
                 }
             }
-            else if (bitdepth == format.bitdepth){
+            else if (bytedepth == format.bytedepth){
                 return i;
             }
         }
@@ -1751,6 +1762,41 @@ bool SonobusAudioProcessor::getAudioCodeFormatInfo(int formatIndex, AudioCodecFo
     return true;
 }
 
+int SonobusAudioProcessor::getBitrateForFormatIndex(int formatIndex) const
+{
+    AudioCodecFormatInfo retinfo;
+    if (getAudioCodeFormatInfo(formatIndex, retinfo)) {
+        return retinfo.bitrate;
+    }
+    else {
+        return 0;
+    }
+}
+
+
+int SonobusAudioProcessor::validateRemoteSourceFormatIndex(RemotePeer * remote, int format) {
+    if (format < 0) return format; // default always ok??
+    int retindex = format;
+    AudioCodecFormatInfo formatinfo;
+    int ourMaxRequestableBitrate = getBitrateForFormatIndex(mMaxRequestableAudioFormatIndex);
+    if (getAudioCodeFormatInfo(format, formatinfo)) {
+        if (ourMaxRequestableBitrate > 0 && formatinfo.bitrate > ourMaxRequestableBitrate) {
+            // find a valid one <= our max sending bitrate (they are ordered least to most)
+            for (int i=mAudioFormats.size()-1; i >= 0; --i) {
+                const auto & refformat = mAudioFormats.getReference(i);
+                if (refformat.bitrate <= ourMaxRequestableBitrate) {
+                    retindex = i;
+                    break;
+                }
+            }
+        }
+        return retindex;
+    }
+    else {
+        return -1;
+    }
+}
+
 
 void SonobusAudioProcessor::setDefaultAudioCodecFormat(int formatIndex)
 {
@@ -1774,6 +1820,12 @@ void SonobusAudioProcessor::setDefaultAudioCodecFormat(int formatIndex)
         mDefaultAudioFormatParam->setValueNotifyingHost(mDefaultAudioFormatParam->convertTo0to1(mDefaultAudioFormatIndex));
     }
     
+}
+
+void SonobusAudioProcessor::setMaxRequestableAudioCodecFormat(int formatIndex)
+{
+    mMaxRequestableAudioFormatIndex = formatIndex;
+    mMaxAudioFormatParam->setValueNotifyingHost(mMaxAudioFormatParam->convertTo0to1(mMaxRequestableAudioFormatIndex));
 }
 
 
@@ -4084,6 +4136,7 @@ int32_t SonobusAudioProcessor::handleAooSinkEvent(const AooEvent *event, int32_t
             }
             else {
                 DBG("Added source to unknown " << e->endpoint.id);
+                // potentially uninvite it?
             }
             // add remote source
             //doAddRemoteSourceIfNecessary(es, e->id);
@@ -4184,22 +4237,23 @@ int32_t SonobusAudioProcessor::handleAooSinkEvent(const AooEvent *event, int32_t
                     if (codec == CodecOpus) {
                         AooFormatOpus *fmt = (AooFormatOpus *)&f;
                         // unknown parts,
+                        /*
                         if (e->endpoint.id == peer->remoteCommonSourceId) {
                             getAudioCodeFormatInfo(peer->remoteCommonSourceMetadata.sendFormatIndex, peer->recvCommonFormat);
                         } else {
                             getAudioCodeFormatInfo(peer->remoteSourceMetadata.sendFormatIndex, peer->recvFormat);
                         }
-
+                         */
                         //peer->recvFormat = AudioCodecFormatInfo(fmt->bitrate/fmt->header.nchannels, fmt->complexity, fmt->signalType);
                         //peer->recvFormatIndex = findFormatIndex(codec, fmt->bitrate / fmt->header.nchannels, 0);
                     } else {
                         AooFormatPcm *fmt = (AooFormatPcm *)&f;
-                        int bitdepth = fmt->bitDepth == kAooPcmInt16 ? 2 : fmt->bitDepth == kAooPcmInt24  ? 3  : fmt->bitDepth == kAooPcmFloat32 ? 4 : fmt->bitDepth == kAooPcmFloat64  ? 8 : 2;
+                        int bytedepth = fmt->bitDepth == kAooPcmInt16 ? 2 : fmt->bitDepth == kAooPcmInt24  ? 3  : fmt->bitDepth == kAooPcmFloat32 ? 4 : fmt->bitDepth == kAooPcmFloat64  ? 8 : 2;
 
                         if (e->endpoint.id == peer->remoteCommonSourceId) {
-                            peer->recvCommonFormat = AudioCodecFormatInfo(bitdepth);
+                            peer->recvCommonFormat = AudioCodecFormatInfo(bytedepth);
                         } else {
-                            peer->recvFormat = AudioCodecFormatInfo(bitdepth);
+                            peer->recvFormat = AudioCodecFormatInfo(bytedepth);
                         }
                     }
 
@@ -4218,7 +4272,7 @@ int32_t SonobusAudioProcessor::handleAooSinkEvent(const AooEvent *event, int32_t
             auto e = event->streamStart;
             EndpointState * es = (EndpointState *) findOrAddRawEndpoint(e.endpoint.address, e.endpoint.addrlen);
 
-            DBG("Got source stream start event from " << es->ipaddr << ":" << es->port << " sourceid: " << e.endpoint.id);
+            DBG("Got source stream start event from " << es->ipaddr << ":" << es->port << " sourceid: " << e.endpoint.id << " metadata: " << (unsigned long) e.metadata);
 
             const ScopedReadLock sl (mCoreLock);
 
@@ -4239,6 +4293,7 @@ int32_t SonobusAudioProcessor::handleAooSinkEvent(const AooEvent *event, int32_t
                     } else {
                         DBG("stream start got metadata for individual");
                         if (sonobus::fromAooData(*e.metadata, peer->remoteSourceMetadata)) {
+                            DBG("stream metadata has sendformat: " << peer->remoteSourceMetadata.sendFormatIndex);
                             getAudioCodeFormatInfo(peer->remoteSourceMetadata.sendFormatIndex, peer->recvFormat);
                         }
                     }
@@ -4540,7 +4595,6 @@ int32_t SonobusAudioProcessor::handleAooSourceEvent(const AooEvent *event, int32
             // accepts invites
             if (true){
                 EndpointState * es = (EndpointState *) findOrAddRawEndpoint(e->endpoint.address, e->endpoint.addrlen);
-                // handle dummy source specially
 
                 {
                     // invited
@@ -4600,8 +4654,21 @@ int32_t SonobusAudioProcessor::handleAooSourceEvent(const AooEvent *event, int32
                             if (sonobus::fromAooData(*e->metadata, peer->remoteSinkMetadata)) {
                                 DBG("Got good remote sink metadata: " << peer->remoteSinkMetadata.preferredSendFormatIndex);
                                 // TODO validate if the preferred is under the bitrate limit for our self
-                                peer->formatIndex = peer->remoteSinkMetadata.preferredSendFormatIndex;
+                                int usesendformatindex =  validateRemoteSourceFormatIndex(peer, peer->remoteSinkMetadata.preferredSendFormatIndex);
+                                peer->formatIndex = usesendformatindex;
                                 setupSourceFormat(peer, peer->oursource.get());
+
+#if 0
+                                // restart stream
+                                // jlc XXX
+                                sonobus::SourceMetadata smetadata;
+                                smetadata.sendFormatIndex = peer->formatIndex >= 0 ? peer->formatIndex : mDefaultAudioFormatIndex;
+                                sonobus::ScopedAooData sdata;
+                                setupSourceUserFormat(smetadata);
+                                sonobus::toAooData(sdata, smetadata);
+                                DBG("restarting our source stream");
+                                peer->oursource->startStream(0, &sdata.get());
+#endif
                             }
                         }
 
@@ -6205,7 +6272,7 @@ void SonobusAudioProcessor::setRemotePeerSendActive(int index, bool active)
 
         } else {
             remote->oursource->activate(aend, false);
-            remote->oursource->stopStream(0);
+            //remote->oursource->stopStream(0);
             mAooCommonSource->activate(aend, false);
             remote->sendCommonActive = false;
 
@@ -6682,7 +6749,7 @@ bool SonobusAudioProcessor::formatInfoToAooFormat(const AudioCodecFormatInfo & i
     if (info.codec == CodecPCM) {
         AooFormatPcm *fmt = (AooFormatPcm *)&retformat;
 
-        AooFormatPcm_init(fmt, channels, getSampleRate(), currSamplesPerBlock >= info.min_preferred_blocksize ? currSamplesPerBlock : info.min_preferred_blocksize, info.bitdepth == 2 ? kAooPcmInt16 : info.bitdepth == 3 ? kAooPcmInt24 : info.bitdepth == 4 ? kAooPcmFloat32 : info.bitdepth == 8 ? kAooPcmFloat64 : kAooPcmInt16);
+        AooFormatPcm_init(fmt, channels, getSampleRate(), currSamplesPerBlock >= info.min_preferred_blocksize ? currSamplesPerBlock : info.min_preferred_blocksize, info.bytedepth == 2 ? kAooPcmInt16 : info.bytedepth == 3 ? kAooPcmInt24 : info.bytedepth == 4 ? kAooPcmFloat32 : info.bytedepth == 8 ? kAooPcmFloat64 : kAooPcmInt16);
 
         return true;
     }
@@ -6714,8 +6781,18 @@ void SonobusAudioProcessor::setupSourceFormat(SonobusAudioProcessor::RemotePeer 
             // set these this other way
             AooSource_setOpusComplexity(source, 0, info.complexity);
             AooSource_setOpusSignalType(source, 0, info.signal_type);
-            AooSource_setOpusBitrate(source, 0, info.bitrate);
+            AooSource_setOpusBitrate(source, 0, info.bitrate * channels);
         }
+
+        /*
+        sonobus::SourceMetadata smetadata;
+        smetadata.sendFormatIndex = formatIndex;
+        sonobus::ScopedAooData sdata;
+        setupSourceUserFormat(smetadata);
+        sonobus::toAooData(sdata, smetadata);
+
+        source->startStream(0, &sdata.get());
+         */
     }
 }
 
@@ -6779,6 +6856,7 @@ void SonobusAudioProcessor::setupSourceUserFormat(sonobus::SourceMetadata & meta
     fmttree.writeToStream(stream);
 
     metadata.layout.assign((uint8_t *)destData.getData(), ((uint8_t *)destData.getData()) + destData.getSize());
+    metadata.maxBitRate = getBitrateForFormatIndex(mMaxRequestableAudioFormatIndex);
 
 }
 
@@ -6787,20 +6865,10 @@ void SonobusAudioProcessor::updateRemotePeerUserFormat(int index, RemotePeer * o
     // get userformat from send info
     ValueTree fmttree = getSendUserFormatLayoutTree();
 
-    MemoryBlock destData;
-    MemoryOutputStream stream(destData, false);
 
-    DBG("format data: " << fmttree.toXmlString());
-
-    fmttree.writeToStream(stream);
 
     char buf[AOO_MAX_PACKET_SIZE];
 
-
-    if (destData.getSize() > AOO_MAX_PACKET_SIZE - 100) {
-        DBG("Info too big for packet!");
-        return;
-    }
 
 
     const ScopedReadLock sl (mCoreLock);
@@ -6810,6 +6878,21 @@ void SonobusAudioProcessor::updateRemotePeerUserFormat(int index, RemotePeer * o
         if (onlypeer && onlypeer != peer) continue;
 
         osc::OutboundPacketStream msg(buf, sizeof(buf));
+
+        MemoryBlock destData;
+        MemoryOutputStream stream(destData, false);
+
+        ValueTree peertree(peerUserFormatKey);
+        peertree.setProperty(peerSendFormatKey, onlypeer->formatIndex, nullptr);
+
+        peertree.appendChild(fmttree, nullptr);
+        //DBG("format data: " << peertree.toXmlString());
+        peertree.writeToStream(stream);
+
+        if (destData.getSize() > AOO_MAX_PACKET_SIZE - 100) {
+            DBG("Info too big for packet!");
+            continue;
+        }
 
         try {
             msg << osc::BeginMessage(SONOBUS_FULLMSG_LAYOUTINFO)
@@ -6855,73 +6938,86 @@ void SonobusAudioProcessor::restoreLayoutFormatForPeer(RemotePeer * remote, bool
     }
 }
 
-void SonobusAudioProcessor::applyLayoutFormatToPeer(RemotePeer * remote, const ValueTree & valtree)
+void SonobusAudioProcessor::applyLayoutFormatToPeer(RemotePeer * remote, const ValueTree & peertree)
 {
-    DBG("Got layout userformat for peer: " << valtree.toXmlString());
-
-
-    // apply this valtree to the channelgroups for this peer
-    for (int i=0; i < valtree.getNumChildren(); ++i) {
-        const auto & child = valtree.getChild(i);
-        if (i < MAX_CHANGROUPS) {
-            // first copy from our active
-            remote->origChanParams[i] = remote->chanGroups[i].params;
-            // then override with stuff from value tree
-            remote->origChanParams[i].setFromChannelLayoutValueTree(child);
+    auto recvformat = peertree.getProperty(peerSendFormatKey, -1);
+    if ((int)recvformat >= 0) {
+        DBG("Got recvformat index of " << (int) recvformat);
+        if (remote->remoteSourceId == remote->remoteCommonSourceId) {
+            getAudioCodeFormatInfo((int) recvformat, remote->recvCommonFormat);
+        } else {
+            getAudioCodeFormatInfo((int) recvformat, remote->recvFormat);
         }
     }
 
-    remote->origNumChanGroups = jmin(valtree.getNumChildren(), MAX_CHANGROUPS);
+    ValueTree valtree = peertree.getChildWithName(channelLayoutsKey);
 
-    // check conditions for applying these changes
-    bool doapply = !remote->modifiedChanGroups;
+    if (valtree.isValid()) {
+        DBG("Got layout userformat for peer: " << valtree.toXmlString());
 
-    int origchans = 0;
-    for (int i=0; i < remote->origNumChanGroups; ++i) {
-        origchans += remote->origChanParams[i].numChannels;
-    }
-
-    int modchans = 0;
-    for (int i=0; i < remote->numChanGroups; ++i) {
-        modchans += remote->chanGroups[i].params.numChannels;
-    }
-
-    // if the total number of channels changed do apply
-    if (modchans != origchans) {
-        doapply = true;
-    }
-
-    // if the new source (origchans) is now <= 2 and previously it was more
-    // save our old one to multichan state for possible later restore
-    if (origchans <= 2 && modchans > 2 && remote->modifiedMultiChanGroups) {
-        DBG("Saving last multchan");
-        for (int i=0; i < remote->numChanGroups; ++i) {
-            remote->lastMultiChanParams[i] = remote->chanGroups[i].params;
-        }
-        remote->lastMultiNumChanGroups = remote->numChanGroups;
-    }
-    else if (origchans > 2 && modchans <= 2 && remote->lastMultiNumChanGroups > 0 && remote->modifiedMultiChanGroups) {
-        // if it's now switched from mono/stereo to multichannel, possibly restore last multichanparams
-        int multchans = 0;
-        for (int i=0; i < remote->lastMultiNumChanGroups; ++i) {
-            multchans += remote->lastMultiChanParams[i].numChannels;
-        }
-
-        if (multchans == origchans) {
-            DBG("Restoring last saved multichannel");
-            for (int i=0; i < remote->numChanGroups; ++i) {
-                remote->chanGroups[i].params = remote->lastMultiChanParams[i];
-                remote->chanGroups[i].commitAllParams();
+        // apply this valtree to the channelgroups for this peer
+        for (int i=0; i < valtree.getNumChildren(); ++i) {
+            const auto & child = valtree.getChild(i);
+            if (i < MAX_CHANGROUPS) {
+                // first copy from our active
+                remote->origChanParams[i] = remote->chanGroups[i].params;
+                // then override with stuff from value tree
+                remote->origChanParams[i].setFromChannelLayoutValueTree(child);
             }
-            remote->numChanGroups = remote->lastMultiNumChanGroups;
-            remote->modifiedChanGroups = true;
-            doapply = false;
         }
-    }
+
+        remote->origNumChanGroups = jmin(valtree.getNumChildren(), MAX_CHANGROUPS);
+
+        // check conditions for applying these changes
+        bool doapply = !remote->modifiedChanGroups;
+
+        int origchans = 0;
+        for (int i=0; i < remote->origNumChanGroups; ++i) {
+            origchans += remote->origChanParams[i].numChannels;
+        }
+
+        int modchans = 0;
+        for (int i=0; i < remote->numChanGroups; ++i) {
+            modchans += remote->chanGroups[i].params.numChannels;
+        }
+
+        // if the total number of channels changed do apply
+        if (modchans != origchans) {
+            doapply = true;
+        }
+
+        // if the new source (origchans) is now <= 2 and previously it was more
+        // save our old one to multichan state for possible later restore
+        if (origchans <= 2 && modchans > 2 && remote->modifiedMultiChanGroups) {
+            DBG("Saving last multchan");
+            for (int i=0; i < remote->numChanGroups; ++i) {
+                remote->lastMultiChanParams[i] = remote->chanGroups[i].params;
+            }
+            remote->lastMultiNumChanGroups = remote->numChanGroups;
+        }
+        else if (origchans > 2 && modchans <= 2 && remote->lastMultiNumChanGroups > 0 && remote->modifiedMultiChanGroups) {
+            // if it's now switched from mono/stereo to multichannel, possibly restore last multichanparams
+            int multchans = 0;
+            for (int i=0; i < remote->lastMultiNumChanGroups; ++i) {
+                multchans += remote->lastMultiChanParams[i].numChannels;
+            }
+
+            if (multchans == origchans) {
+                DBG("Restoring last saved multichannel");
+                for (int i=0; i < remote->numChanGroups; ++i) {
+                    remote->chanGroups[i].params = remote->lastMultiChanParams[i];
+                    remote->chanGroups[i].commitAllParams();
+                }
+                remote->numChanGroups = remote->lastMultiNumChanGroups;
+                remote->modifiedChanGroups = true;
+                doapply = false;
+            }
+        }
 
 
-    if (doapply) {
-        restoreLayoutFormatForPeer(remote);
+        if (doapply) {
+            restoreLayoutFormatForPeer(remote);
+        }
     }
 }
 
@@ -7193,6 +7289,9 @@ void SonobusAudioProcessor::parameterChanged (const String &parameterID, float n
             }
         }
         
+    }
+    else if (parameterID == paramMaxSendQual) {
+        mMaxRequestableAudioFormatIndex = (int) newValue;
     }
     else if (parameterID == paramDefaultNetbufMs) {
         mBufferTime = newValue;

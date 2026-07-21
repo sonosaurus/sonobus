@@ -123,10 +123,17 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
 
     mOptionsAutosizeDefaultChoice->setTooltip(TRANS("This controls how the jitter buffers are automatically adjusted based on network conditions. The Auto mode is the recommended choice as it will adjust the jitter buffers up or down based on current conditions. The Auto-Up will only make the buffers larger. The Initial Auto will do an initial adjustment from the smallest value and once it stabilizes will no longer change, even if network conditions worsen. Manual will let you set the jitter buffer manually, leaving it up to you to deal with if network conditions change, but can be useful with known users."));
 
-    mOptionsFormatChoiceDefaultChoice = std::make_unique<SonoChoiceButton>();
-    mOptionsFormatChoiceDefaultChoice->setTitle(TRANS("Default Send Quality:"));
+    mOptionsDefaultFormatChoice = std::make_unique<SonoChoiceButton>();
+    mOptionsDefaultFormatChoice->setTitle(TRANS("Default Send Quality:"));
 
-    mOptionsFormatChoiceDefaultChoice->addChoiceListener(this);
+    mOptionsMaxFormatChoice = std::make_unique<SonoChoiceButton>();
+    mOptionsMaxFormatChoice->setTitle(TRANS("Max Send Quality:"));
+
+    mOptionsDefaultFormatChoice->addChoiceListener(this);
+    mOptionsMaxFormatChoice->addChoiceListener(this);
+
+    mOptionsMaxFormatChoice->addItem(TRANS("Allow all"), -1);
+
     int numformats = processor.getNumberAudioCodecFormats();
     for (int i=0; i < numformats; ++i) {
         SonobusAudioProcessor::AudioCodecFormatInfo finfo;
@@ -135,21 +142,27 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
         if (finfo.codec == SonobusAudioProcessor::AudioCodecFormatCodec::CodecOpus && finfo.bitrate < 96000) {
             name += String(" (*)");
         }
-        mOptionsFormatChoiceDefaultChoice->addItem(name, i+1);
+        mOptionsDefaultFormatChoice->addItem(name, i);
+        mOptionsMaxFormatChoice->addItem(name, i, i == 0);
     }
-    mOptionsFormatChoiceDefaultChoice->addItem("(*) " + TRANS("not recommended"), -2, true, true);
+    mOptionsDefaultFormatChoice->addItem("(*) " + TRANS("not recommended"), -2, true, true);
 
-    mOptionsFormatChoiceDefaultChoice->setTooltip(TRANS("The default send quality will be used when you first connect with someone. The values specified with a kbps/ch are Opus compressed audio and use less network bandwidth at the expense of a little latency. It is not recommended to use less than 96 kpbs/ch, as that will increase latency more. The PCM 16bit (and above) use uncompressed audio data and will use the most network bandwidth, but have the least latency and CPU load. If you are connecting with a known small group who all have network service that can support it, using PCM 16 bit is recommended for the lowest latency. Otherwise 96 kbps/ch is a good default."));
+    mOptionsDefaultFormatChoice->setTooltip(TRANS("The default send quality will be used when you first connect with someone. The values specified with a kbps/ch are Opus compressed audio and use less network bandwidth at the expense of a little latency. It is not recommended to use less than 96 kpbs/ch, as that will increase latency more. The PCM 16bit (and above) use uncompressed audio data and will use the most network bandwidth, but have the least latency and CPU load. If you are connecting with a known small group who all have network service that can support it, using PCM 16 bit is recommended for the lowest latency. Otherwise 96 kbps/ch is a good default."));
 
+    mOptionsMaxFormatChoice->setTooltip(TRANS("This sets the maximum send quality that will allowed to be used when remote peers request a preferred quality to use for audio sent to them specifically. You can then control your upstream bandwidth by making sure people don't request a send quality too high."));
 
     mOptionsAutosizeStaticLabel = std::make_unique<Label>("", TRANS("Default Jitter Buffer"));
     configLabel(mOptionsAutosizeStaticLabel.get(), false);
     mOptionsAutosizeStaticLabel->setJustificationType(Justification::centredLeft);
     mOptionsAutosizeStaticLabel->setAccessible(false);
 
-    mOptionsFormatChoiceStaticLabel = std::make_unique<Label>("", TRANS("Default Send Quality:"));
-    configLabel(mOptionsFormatChoiceStaticLabel.get(), false);
-    mOptionsFormatChoiceStaticLabel->setJustificationType(Justification::centredRight);
+    mOptionsDefaultFormatChoiceStaticLabel = std::make_unique<Label>("", TRANS("Default Send Quality:"));
+    configLabel(mOptionsDefaultFormatChoiceStaticLabel.get(), false);
+    mOptionsDefaultFormatChoiceStaticLabel->setJustificationType(Justification::centredRight);
+
+    mOptionsMaxFormatChoiceStaticLabel = std::make_unique<Label>("", TRANS("Max Send Quality:"));
+    configLabel(mOptionsMaxFormatChoiceStaticLabel.get(), false);
+    mOptionsMaxFormatChoiceStaticLabel->setJustificationType(Justification::centredRight);
 
 
     mOptionsLanguageChoice = std::make_unique<SonoChoiceButton>();
@@ -363,8 +376,10 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOptionsComponent->addAndMakeVisible(mOptionsAutosizeStaticLabel.get());
     mOptionsComponent->addAndMakeVisible(mBufferTimeSlider.get());
     mOptionsComponent->addAndMakeVisible(mOptionsAutosizeDefaultChoice.get());
-    mOptionsComponent->addAndMakeVisible(mOptionsFormatChoiceDefaultChoice.get());
-    mOptionsComponent->addAndMakeVisible(mOptionsFormatChoiceStaticLabel.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsDefaultFormatChoice.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsDefaultFormatChoiceStaticLabel.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsMaxFormatChoice.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsMaxFormatChoiceStaticLabel.get());
     //mOptionsComponent->addAndMakeVisible(mOptionsHearLatencyButton.get());
     mOptionsComponent->addAndMakeVisible(mOptionsUdpPortEditor.get());
     mOptionsComponent->addAndMakeVisible(mOptionsUseSpecificUdpPortButton.get());
@@ -551,12 +566,12 @@ void OptionsView::grabInitialFocus()
 void OptionsView::configLabel(Label *label, bool val)
 {
     if (val) {
-        label->setFont(12);
+        label->setFont(FontOptions(12));
         label->setColour(Label::textColourId, Colour(0x90eeeeee));
         label->setJustificationType(Justification::centred);
     }
     else {
-        label->setFont(14);
+        label->setFont(FontOptions(14));
         //label->setColour(Label::textColourId, Colour(0xaaeeeeee));
         label->setJustificationType(Justification::centredLeft);
     }
@@ -592,7 +607,8 @@ void OptionsView::configEditor(TextEditor *editor, bool passwd)
 
 void OptionsView::updateState(bool ignorecheck)
 {
-    mOptionsFormatChoiceDefaultChoice->setSelectedItemIndex(processor.getDefaultAudioCodecFormat(), dontSendNotification);
+    mOptionsDefaultFormatChoice->setSelectedId(processor.getDefaultAudioCodecFormat(), dontSendNotification);
+    mOptionsMaxFormatChoice->setSelectedId(processor.getMaxRequestableAudioCodecFormat(), dontSendNotification);
     mOptionsAutosizeDefaultChoice->setSelectedId((int)processor.getDefaultAutoresizeBufferMode(), dontSendNotification);
 
     mOptionsChangeAllFormatButton->setToggleState(processor.getChangingDefaultAudioCodecSetsExisting(), dontSendNotification);
@@ -722,8 +738,13 @@ void OptionsView::updateLayout()
 
     optionsSendQualBox.items.clear();
     optionsSendQualBox.flexDirection = FlexBox::Direction::row;
-    optionsSendQualBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsFormatChoiceStaticLabel).withMargin(0).withFlex(1));
-    optionsSendQualBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsFormatChoiceDefaultChoice).withMargin(0).withFlex(1));
+    optionsSendQualBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsDefaultFormatChoiceStaticLabel).withMargin(0).withFlex(1));
+    optionsSendQualBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsDefaultFormatChoice).withMargin(0).withFlex(1));
+
+    optionsMaxSendQualBox.items.clear();
+    optionsMaxSendQualBox.flexDirection = FlexBox::Direction::row;
+    optionsMaxSendQualBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsMaxFormatChoiceStaticLabel).withMargin(0).withFlex(1));
+    optionsMaxSendQualBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsMaxFormatChoice).withMargin(0).withFlex(1));
 
     optionsLanguageBox.items.clear();
     optionsLanguageBox.flexDirection = FlexBox::Direction::row;
@@ -819,7 +840,9 @@ void OptionsView::updateLayout()
     optionsBox.items.add(FlexItem(100, minitemheight, optionsLanguageBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(4, 4));
     optionsBox.items.add(FlexItem(100, minitemheight, optionsSendQualBox).withMargin(2).withFlex(0));
-    optionsBox.items.add(FlexItem(100, minitemheight - 10, optionsChangeAllQualBox).withMargin(1).withFlex(0));
+    //optionsBox.items.add(FlexItem(100, minitemheight - 10, optionsChangeAllQualBox).withMargin(1).withFlex(0));
+    optionsBox.items.add(FlexItem(4, 4));
+    optionsBox.items.add(FlexItem(100, minitemheight, optionsMaxSendQualBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(4, 4));
     optionsBox.items.add(FlexItem(100, minitemheight, optionsNetbufBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(4, 3));
@@ -1220,8 +1243,11 @@ void OptionsView::buttonClicked (Button* buttonThatWasClicked)
 
 void OptionsView::choiceButtonSelected(SonoChoiceButton *comp, int index, int ident)
 {
-    if (comp == mOptionsFormatChoiceDefaultChoice.get()) {
-        processor.setDefaultAudioCodecFormat(index);
+    if (comp == mOptionsDefaultFormatChoice.get()) {
+        processor.setDefaultAudioCodecFormat(ident);
+    }
+    else if (comp == mOptionsMaxFormatChoice.get()) {
+        processor.setMaxRequestableAudioCodecFormat(ident);
     }
     else if (comp == mOptionsAutosizeDefaultChoice.get()) {
         processor.setDefaultAutoresizeBufferMode((SonobusAudioProcessor::AutoNetBufferMode) ident);
