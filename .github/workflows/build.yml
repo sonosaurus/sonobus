@@ -1,0 +1,98 @@
+name: Build SonoBus
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-14, windows-latest]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Install dependencies (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libjack-jackd2-dev libopus-dev opus-tools libasound2-dev libx11-dev libxext-dev libxinerama-dev libxrandr-dev libxcursor-dev libgl-dev libfreetype6-dev libcurl4-openssl-dev
+
+    - name: Download ASIO SDK
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        curl -L -o asiosdk.zip https://www.steinberg.net/asiosdk -H "User-Agent: Mozilla/5.0"
+        Expand-Archive asiosdk.zip -DestinationPath asiosdk_ext
+        $asiodir = Get-ChildItem -Path asiosdk_ext -Directory | Select-Object -First 1
+        Move-Item $asiodir.FullName ./asiosdk
+
+    - name: Setup CMake
+      run: |
+        if [ "${{ runner.os }}" == "Windows" ]; then
+          cmake -B build -DCMAKE_BUILD_TYPE=Release "-DASIO_SDK_PATH=${{ github.workspace }}/asiosdk"
+        else
+          cmake -B build -DCMAKE_BUILD_TYPE=Release
+        fi
+      shell: bash
+
+    - name: Build
+      run: cmake --build build --config Release --parallel 4
+
+    - name: Zip Artifacts (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        Compress-Archive -Path build/SonoBus_artefacts/Release/* -DestinationPath SonoBus-Windows.zip
+
+    - name: Zip Artifacts (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        zip -r SonoBus-macOS.zip build/SonoBus_artefacts/Release/*
+
+    - name: Zip Artifacts (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        zip -r SonoBus-Linux.zip build/SonoBus_artefacts/Release/*
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: SonoBus-${{ runner.os }}
+        path: SonoBus-*.zip
+        if-no-files-found: error
+
+  release:
+    name: Create Release
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: artifacts/*.zip
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -22,12 +22,12 @@ public:
     /**
      * The file extensions of sound file types that are supported by the soundboard.
      */
-    constexpr static const char SUPPORTED_EXTENSIONS[] = "*.wav;*.flac;*.aif;*.ogg;*.mp3;*.m4a;*.caf";
+    constexpr static const char SUPPORTED_EXTENSIONS[] = "*.wav;*.flac;*.aif;*.ogg;*.mp3;*.m4a;*.caf;*.mogg;*.m0gg";
 #else
     /**
      * The file extensions of sound file types that are supported by the soundboard.
      */
-    constexpr static const char SUPPORTED_EXTENSIONS[] = "*.wav;*.flac;*.aif;*.ogg;*.mp3";
+    constexpr static const char SUPPORTED_EXTENSIONS[] = "*.wav;*.flac;*.aif;*.ogg;*.mp3;*.mogg;*.m0gg";
 #endif
 
     enum PlaybackBehaviour {

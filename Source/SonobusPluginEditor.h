@@ -9,6 +9,8 @@
 
 #include "SonobusPluginProcessor.h"
 #include "SonoLookAndFeel.h"
+#include "SonoSlider.h"
+
 #include "SonoChoiceButton.h"
 #include "SonoDrawableButton.h"
 #include "SonoTextButton.h"
@@ -24,6 +26,7 @@
 #include "OptionsView.h"
 #include "ReverbView.h"
 #include "VDONinjaView.h"
+#include "MoggMixerView.h"
 
 class RandomSentenceGenerator;
 class WaveformTransportComponent;
@@ -178,6 +181,8 @@ public:
 
     bool setupLocalisation(const String & overrideLang = {});
 
+    void showMoggMixer(int peerIndex = -1);
+
 private:
 
     void updateLayout();
@@ -189,7 +194,10 @@ private:
     void configLevelSlider(Slider *);
     void configEditor(TextEditor *editor, bool passwd = false);
 
+    void showMidiMenu(Component* source, SonobusAudioProcessor::MidiTargetType type, int data = 0);
+
     void showPatchbay(bool flag);
+
     void showMetConfig(bool flag);
     void showEffectsConfig(bool flag);
 
@@ -298,7 +306,8 @@ private:
     std::unique_ptr<SonoDrawableButton> mMainLinkButton;
     std::unique_ptr<Drawable> mMainLinkArrow;
 
-    std::unique_ptr<Slider> mInGainSlider;
+    std::unique_ptr<SonoSlider> mInGainSlider;
+
 
     std::unique_ptr<TextButton> mInMixerButton;
 
@@ -309,8 +318,9 @@ private:
     std::unique_ptr<TextButton> mMonDelayButton;
 
     
-    std::unique_ptr<Slider> mDrySlider;
-    std::unique_ptr<Slider> mOutGainSlider;
+    std::unique_ptr<SonoSlider> mDrySlider;
+    std::unique_ptr<SonoSlider> mOutGainSlider;
+
     
     std::unique_ptr<SonoDrawableButton> mMainMuteButton;
     std::unique_ptr<SonoDrawableButton> mMainRecvMuteButton;
@@ -322,9 +332,10 @@ private:
     std::unique_ptr<TextButton> mMetSyncButton;
     std::unique_ptr<TextButton> mMetSyncFileButton;
     std::unique_ptr<Label> mMetTempoSliderLabel;
-    std::unique_ptr<Slider> mMetTempoSlider;
+    std::unique_ptr<SonoSlider> mMetTempoSlider;
     std::unique_ptr<Label> mMetLevelSliderLabel;
-    std::unique_ptr<Slider> mMetLevelSlider;
+    std::unique_ptr<SonoSlider> mMetLevelSlider;
+
     std::unique_ptr<DrawableRectangle> mMetButtonBg;
 
     std::unique_ptr<DrawableRectangle> mDragDropBg;
@@ -359,8 +370,12 @@ private:
     std::unique_ptr<SonoDrawableButton> mLoopButton;
     std::unique_ptr<SonoDrawableButton> mFileSendAudioButton;
     std::unique_ptr<SonoDrawableButton> mFileMenuButton;
-    std::unique_ptr<Slider> mPlaybackSlider;
+    std::unique_ptr<SonoDrawableButton> mMoggMixerButton;  // opens floating stem mixer
+    std::unique_ptr<SonoSlider> mPlaybackSlider;
+
     std::unique_ptr<WaveformTransportComponent> mWaveformThumbnail;
+
+    std::unique_ptr<MoggMixerWindow> mMoggMixerWindow;
 
     std::unique_ptr<Drawable> mPeerRecImage;
 
@@ -386,13 +401,14 @@ private:
     std::unique_ptr<Label>  mReverbTitleLabel;
     std::unique_ptr<SonoChoiceButton> mReverbModelChoice;
     std::unique_ptr<Label>  mReverbLevelLabel;
-    std::unique_ptr<Slider> mReverbLevelSlider;
+    std::unique_ptr<SonoSlider> mReverbLevelSlider;
     std::unique_ptr<Label>  mReverbSizeLabel;
-    std::unique_ptr<Slider> mReverbSizeSlider;
+    std::unique_ptr<SonoSlider> mReverbSizeSlider;
     std::unique_ptr<Label>  mReverbDampingLabel;
-    std::unique_ptr<Slider> mReverbDampingSlider;
+    std::unique_ptr<SonoSlider> mReverbDampingSlider;
     std::unique_ptr<Label>  mReverbPreDelayLabel;
-    std::unique_ptr<Slider> mReverbPreDelaySlider;
+    std::unique_ptr<SonoSlider> mReverbPreDelaySlider;
+
 
 
     class ApproveComponent;

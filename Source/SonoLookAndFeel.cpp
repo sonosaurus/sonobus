@@ -1046,26 +1046,30 @@ void SonoLookAndFeel::drawRotarySlider (Graphics& g, int x, int y, int width, in
     
     if (slider.isEnabled())
     {
-        Path valueArc;
-        valueArc.addCentredArc (bounds.getCentreX(),
-                                bounds.getCentreY(),
-                                arcRadius,
-                                arcRadius,
-                                0.0f,
-                                rotStartAngle,
-                                toAngle,
-                                true);
+        // Draw proper knob body
+        g.setColour (outline.darker (0.2f));
+        g.fillEllipse (bounds.getCentreX() - arcRadius, bounds.getCentreY() - arcRadius, arcRadius * 2, arcRadius * 2);
         
-        g.setColour (fill);
-        g.strokePath (valueArc, PathStrokeType (lineW, PathStrokeType::curved, PathStrokeType::rounded));
+        // Draw indicator pointer
+        Path p;
+        p.addRoundedRectangle (-lineW * 0.4f, -arcRadius, lineW * 0.8f, arcRadius * 0.6f, 1.0f);
+        
+        auto pointerColor = fill;
+        if (slider.getName().containsIgnoreCase("monitor") || slider.getName().containsIgnoreCase("mon"))
+             pointerColor = Colour (0xffff9900);
+             
+        g.setColour (pointerColor);
+        g.fillPath (p, AffineTransform::rotation (toAngle).translated (bounds.getCentre()));
     }
+
     
-    const auto thumbWidth = lineW ; // * 1.5f;
-    const Point<float> thumbPoint (bounds.getCentreX() + arcRadius * std::cos (toAngle - MathConstants<float>::pi * 0.5f),
-                                   bounds.getCentreY() + arcRadius * std::sin (toAngle - MathConstants<float>::pi * 0.5f));
+    // remove the old thumb "dot" since we have a pointer now
+    //const auto thumbWidth = lineW ; // * 1.5f;
+    //const Point<float> thumbPoint (bounds.getCentreX() + arcRadius * std::cos (toAngle - MathConstants<float>::pi * 0.5f),
+    //                               bounds.getCentreY() + arcRadius * std::sin (toAngle - MathConstants<float>::pi * 0.5f));
     
-    g.setColour (findColour (Slider::thumbColourId));
-    g.fillEllipse (Rectangle<float> (thumbWidth, thumbWidth).withCentre (thumbPoint));
+    //g.setColour (findColour (Slider::thumbColourId));
+    //g.fillEllipse (Rectangle<float> (thumbWidth, thumbWidth).withCentre (thumbPoint));
 }
 
 //==============================================================================
@@ -1252,9 +1256,19 @@ void SonoLookAndFeel::drawLinearSlider (Graphics& g, int x, int y, int width, in
         
         if (! isTwoVal)
         {
-            g.setColour (slider.findColour (Slider::thumbColourId));
-            g.fillEllipse (Rectangle<float> (static_cast<float> (thumbWidth), static_cast<float> (thumbWidth)).withCentre (isThreeVal ? thumbPoint : maxPoint));
+            auto thumbColor = slider.findColour (Slider::thumbColourId);
+            if (slider.getName().containsIgnoreCase("monitor") || slider.getName().containsIgnoreCase("mon"))
+                thumbColor = Colour (0xffff9900);
+            
+            g.setColour (thumbColor);
+            
+            // Use a rectangular fader button instead of a dot
+            float fw = thumbWidth * 2.0f;
+            float fh = thumbWidth * 0.8f;
+            if (slider.isVertical()) std::swap(fw, fh);
+            g.fillRoundedRectangle (Rectangle<float> (fw, fh).withCentre (isThreeVal ? thumbPoint : maxPoint), 2.0f);
         }
+
         
         if (isTwoVal || isThreeVal)
         {

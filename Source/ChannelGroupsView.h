@@ -8,6 +8,8 @@
 
 #include "SonobusPluginProcessor.h"
 #include "SonoLookAndFeel.h"
+#include "SonoSlider.h"
+
 #include "SonoChoiceButton.h"
 #include "SonoDrawableButton.h"
 #include "GenericItemChooser.h"
@@ -255,12 +257,16 @@ public:
     std::unique_ptr<TextButton> soloButton;
     std::unique_ptr<TextButton> fxButton;
     std::unique_ptr<TextButton> monfxButton;
+    std::unique_ptr<TextButton> moggButton;
+    std::unique_ptr<TextButton> midiButton;
     std::unique_ptr<Label>  chanLabel;
+
     std::unique_ptr<Label>  levelLabel;
-    std::unique_ptr<Slider> levelSlider;
-    std::unique_ptr<Slider> monitorSlider;
+    std::unique_ptr<SonoSlider> levelSlider;
+    std::unique_ptr<SonoSlider> monitorSlider;
     std::unique_ptr<Label>  panLabel;
-    std::unique_ptr<Slider> panSlider;
+    std::unique_ptr<SonoSlider> panSlider;
+
     std::unique_ptr<SonoDrawableButton> linkButton;
     std::unique_ptr<SonoDrawableButton> monoButton;
     std::unique_ptr<SonoDrawableButton> destButton;
@@ -300,6 +306,7 @@ public SonoChoiceButton::Listener,
 public GenericItemChooser::Listener,
 public ChannelGroupEffectsView::Listener,
 public ChannelGroupMonitorEffectsView::Listener,
+public SonobusAudioProcessor::MidiLearnListener,
 public MultiTimer
 {
 public:
@@ -411,6 +418,10 @@ protected:
     void showMonitorEffects(int index, bool flag, Component * fromView=nullptr);
     void showInputReverbView(bool flag, Component * fromView=nullptr);
 
+    // MIDI learn context menu for a specific stem control
+    void showFileStemMidiMenu(Component* source, SonobusAudioProcessor::MidiTargetType type, int stemIdx);
+    void midiMappingChanged() override; // from MidiLearnListener
+
     int getChanGroupFromIndex(int index);
     juce::Rectangle<int> getBoundsForChanGroup(int chgroup);
     int getChanGroupForPoint(Point<int> pos, bool inbetween);
@@ -424,7 +435,7 @@ protected:
     OwnedArray<ChannelGroupView> mChannelViews;
     std::unique_ptr<ChannelGroupView> mMainChannelView; // used for peers
 
-    std::unique_ptr<ChannelGroupView> mFileChannelView; // used for input
+    juce::OwnedArray<ChannelGroupView> mFileChannelViews; // used for input
     std::unique_ptr<ChannelGroupView> mMetChannelView; // used for input
     std::unique_ptr<ChannelGroupView> mSoundboardChannelView; // used for init
 
@@ -435,8 +446,9 @@ protected:
 
 
 
-    std::unique_ptr<Slider> mInGainSlider;
+    std::unique_ptr<SonoSlider> mInGainSlider;
     std::unique_ptr<TextButton> mAddButton;
+
     std::unique_ptr<TextButton> mClearButton;
     std::unique_ptr<TextButton> mInReverbButton;
     std::unique_ptr<TextButton> mMonDelayButton;

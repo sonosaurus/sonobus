@@ -40,6 +40,7 @@ public:
     std::unique_ptr<TextEditor> addrLabel;
     std::unique_ptr<Label> staticAddrLabel;
     std::unique_ptr<ToggleButton> sendMutedButton;
+    std::unique_ptr<ToggleButton> midiRelayButton;
     std::unique_ptr<TextButton> recvMutedButton;
     std::unique_ptr<TextButton> recvSoloButton;
     std::unique_ptr<SonoDrawableButton> latActiveButton;
@@ -132,6 +133,7 @@ public:
     FlexBox optionsSendQualBox;
     FlexBox optionsChangeAllQualBox;
     FlexBox optionsSendMutedBox;
+    FlexBox optionsMidiRelayBox;
     
     
     FlexBox effectsBox;

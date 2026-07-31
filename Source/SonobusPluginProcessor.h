@@ -113,7 +113,7 @@ inline bool operator<(const AooServerConnectionInfo& lhs, const AooServerConnect
 //==============================================================================
 /**
 */
-class SonobusAudioProcessor  : public AudioProcessor, public AudioProcessorValueTreeState::Listener, public ChangeListener
+class SonobusAudioProcessor  : public AudioProcessor, public AudioProcessorValueTreeState::Listener, public ChangeListener, public MidiInputCallback
 {
 public:
     //==============================================================================
@@ -149,7 +149,8 @@ public:
         FileFormatAuto,
         FileFormatFLAC,
         FileFormatWAV,
-        FileFormatOGG
+        FileFormatOGG,
+        FileFormatMOGG
     };
 
     enum PeerDisplayMode {
@@ -179,7 +180,66 @@ public:
         String destName;
         float latencyMs = 0.0f; // one way latency from source->dest in ms
     };
-    
+
+    // =========================================================================
+    // MIDI Learn
+    // =========================================================================
+    enum MidiTargetType {
+        MidiTarget_None = 0,
+        MidiTarget_FileStemGain,   // data = stem index
+        MidiTarget_FileStemMute,   // data = stem index
+        MidiTarget_FileStemSolo,   // data = stem index
+        MidiTarget_InputGain,
+        MidiTarget_OutputGain,
+        MidiTarget_PeerLevel,      // data = peer index
+        MidiTarget_PeerPan,        // data = peer index
+        MidiTarget_PeerMute,       // data = peer index
+        MidiTarget_MonitorLevel,
+        MidiTarget_MetronomeLevel,
+        MidiTarget_InputMute,
+        MidiTarget_SoundboardLevel,
+        MidiTarget_FXLevel,
+        MidiTarget_FullMixMonitorLevel,
+        MidiTarget_TransportPlay,
+        MidiTarget_TransportRecord,
+        MidiTarget_TransportLoop,
+        MidiTarget_TransportMetronome,
+        MidiTarget_ResetAllJitters,
+        MidiTarget_FileStemMonitor,
+        MidiTarget_FXEnable
+    };
+
+
+    struct MidiMapping {
+        MidiTargetType  targetType = MidiTarget_None;
+        int             targetData = 0;   // stem index etc.
+        int             ccNumber   = -1;  // -1 = not assigned
+        int             midiChannel = 0;  // 0 = any channel
+
+        bool isValid() const { return targetType != MidiTarget_None && ccNumber >= 0; }
+        String getKey() const { return String((int)targetType) + "_" + String(targetData); }
+        ValueTree getValueTree() const;
+        void setFromValueTree(const ValueTree& v);
+    };
+
+    // Add / remove / query mappings
+    void setMidiMapping(MidiTargetType type, int data, int ccNumber, int midiChannel = 0);
+    bool getMidiMapping(MidiTargetType type, int data, int& outCC, int& outChannel) const;
+    void clearMidiMapping(MidiTargetType type, int data);
+    void clearAllMidiMappings();
+
+    // Enter/exit learn mode for a specific target
+    void startMidiLearn(MidiTargetType type, int data);
+    void stopMidiLearn();
+    bool isMidiLearning() const { return mMidiLearnActive; }
+    MidiTargetType getMidiLearnTargetType() const { return mMidiLearnTargetType; }
+    int  getMidiLearnTargetData() const { return mMidiLearnTargetData; }
+
+    // Listeners notified when a mapping is captured or cleared
+    struct MidiLearnListener { virtual ~MidiLearnListener(){} virtual void midiMappingChanged() {} };
+    void addMidiLearnListener(MidiLearnListener* l)    { mMidiLearnListeners.add(l); }
+    void removeMidiLearnListener(MidiLearnListener* l) { mMidiLearnListeners.remove(l); }
+
     int32 getCurrSamplesPerBlock() const { return currSamplesPerBlock; }
     
     void changeListenerCallback (ChangeBroadcaster* source) override;
@@ -189,6 +249,20 @@ public:
     //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
+
+    void handleIncomingMidiMessage (MidiInput* source, const MidiMessage& message) override;
+
+    void setMidiRelayDevice (const String& name);
+    void setMidiLearnDevice (const String& name);
+    String getMidiRelayDevice() const { return mMidiRelayDevice; }
+    String getMidiLearnDevice() const { return mMidiLearnDevice; }
+
+    void setRemotePeerMidiRelay(int peerIndex, bool enabled);
+    bool getRemotePeerMidiRelay(int peerIndex) const;
+
+    void sendMidiToPeers (const MidiMessage& message);
+
+
 
    #ifndef JucePlugin_PreferredChannelConfigurations
     bool isBusesLayoutSupported (const BusesLayout& layouts) const override;
@@ -254,7 +328,9 @@ public:
     static String paramSendMetAudio;
     static String paramSendFileAudio;
     static String paramSendSoundboardAudio;
+    static String paramSoundboardGain;
     static String paramHearLatencyTest;
+
     static String paramMetIsRecorded;
     static String paramMainReverbEnabled;
     static String paramMainReverbLevel;
@@ -327,7 +403,7 @@ public:
     IPAddress getLocalIPAddress() const { return mLocalIPAddress; }
     
 
-    int getSendChannels() const { return mSendChannels.get(); }
+    int getSendChannels() const;
 
     int connectRemotePeer(const String & host, int port, const String & username = "", const String & groupname = "",  bool reciprocate=true);
     bool disconnectRemotePeer(const String & host, int port, int32_t sourceId);
@@ -632,6 +708,9 @@ public:
     
     void setRemotePeerConnected(int index, bool active);
     bool getRemotePeerConnected(int index) const;
+
+    bool getRemotePeerIsMogg(int index) const;
+    int  getRemotePeerMoggStemCount(int index) const;
     
     bool getRemotePeerAddressInfo(int index, String & rethost, int & retport) const;
 
@@ -722,14 +801,23 @@ public:
     float getMetronomeMonitor() const;
 
 
-    void setFilePlaybackMonitorDelayParams(SonoAudio::DelayParams & params);
-    bool getFilePlaybackMonitorDelayParams(SonoAudio::DelayParams & retparams);
-    void setFilePlaybackDestStartAndCount(int start, int count);
-    bool getFilePlaybackDestStartAndCount(int & retstart, int & retcount);
-    void setFilePlaybackGain(float gain);
-    float getFilePlaybackGain() const;
-    void setFilePlaybackMonitor(float mgain);
-    float getFilePlaybackMonitor() const;
+    void setFilePlaybackMonitorDelayParams(int index, SonoAudio::DelayParams & params);
+    bool getFilePlaybackMonitorDelayParams(int index, SonoAudio::DelayParams & retparams);
+    void setFilePlaybackDestStartAndCount(int index, int start, int count);
+    bool getFilePlaybackDestStartAndCount(int index, int & retstart, int & retcount);
+    void setFilePlaybackGain(int index, float gain);
+    float getFilePlaybackGain(int index) const;
+    void setFilePlaybackPan(int index, float pan);
+    float getFilePlaybackPan(int index) const;
+    void setFilePlaybackMonitor(int index, float mgain);
+    float getFilePlaybackMonitor(int index) const;
+    void setFilePlaybackMuted(int index, bool muted);
+    bool getFilePlaybackMuted(int index) const;
+    void setFilePlaybackSoloed(int index, bool soloed);
+    bool getFilePlaybackSoloed(int index) const;
+    String getFilePlaybackChannelGroupName(int index) const;
+    
+    int getFilePlaybackGroupCount() const { return mFilePlaybackGroupCount; }
 
 
     void setLinkMonitoringDelayTimes(bool flag) { mLinkMonitoringDelayTimes = flag; }
@@ -830,7 +918,7 @@ public:
 
 private:
     //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SonobusAudioProcessor)
+
     
     struct PeerStateCache
     {
@@ -1077,6 +1165,11 @@ private:
     foleys::LevelMeterSource outputMeterSource;
     foleys::LevelMeterSource filePlaybackMeterSource;
     foleys::LevelMeterSource metMeterSource;
+    foleys::LevelMeterSource moggStemMeterSources[MAX_CHANGROUPS];
+
+public:
+    foleys::LevelMeterSource& getMoggStemMeterSource(int peerIndex, int stemIndex);
+private:
 
     // AOO stuff
     aoo::isource::pointer mAooDummySource;
@@ -1199,13 +1292,14 @@ private:
 
     // met and playback channel groups
     SonoAudio::ChannelGroup  mMetChannelGroup;
-    SonoAudio::ChannelGroup  mFilePlaybackChannelGroup;
+    SonoAudio::ChannelGroup  mFilePlaybackChannelGroups[MAX_CHANGROUPS];
+    int mFilePlaybackGroupCount = 1;
+
+    SonoAudio::ChannelGroup  mRecMetChannelGroup;
+    
+    SonoAudio::ChannelGroup  mRecFilePlaybackChannelGroups[MAX_CHANGROUPS];
 
     float _lastfplaygain = 0.0f;
-
-    // and a replicant one for recording purposes
-    SonoAudio::ChannelGroup  mRecMetChannelGroup;
-    SonoAudio::ChannelGroup  mRecFilePlaybackChannelGroup;
 
     
     // recording stuff
@@ -1224,7 +1318,11 @@ private:
 
     std::atomic<bool> writingPossible = { false };
     std::atomic<bool> userWritingPossible = { false };
+    std::atomic<bool> moggWritingPossible = { false };
     int totalRecordingChannels = 2;
+    int moggSelfChannels = 2;
+    AudioSampleBuffer moggWorkBuffer;
+    Array<int> moggPeerChannelStartIndices;
     int64 mElapsedRecordSamples = 0;
     std::unique_ptr<TimeSliceThread> recordingThread;
     std::unique_ptr<AudioFormatWriter::ThreadedWriter> threadedMixWriter;
@@ -1264,10 +1362,29 @@ private:
     String mLangOverrideCode;
     bool mUseUniversalFont = false;
 
+    // MIDI Learn private state
+    std::map<String, MidiMapping> mMidiMappings;         // key = MidiMapping::getKey()
+    CriticalSection               mMidiMappingsLock;
+    std::atomic<bool>            mMidiLearnActive { false };
+    MidiTargetType                mMidiLearnTargetType = MidiTarget_None;
+    int                           mMidiLearnTargetData = 0;
+    ListenerList<MidiLearnListener> mMidiLearnListeners;
+
+    String mMidiRelayDevice;
+    String mMidiLearnDevice;
+    std::unique_ptr<MidiInput> mMidiRelayInput;
+    std::unique_ptr<MidiInput> mMidiLearnInput;
+    
+    bool mRemotePeerMidiRelay[MAX_PEERS];
+    MidiBuffer mIncomingMidiFromPeers;
+    bool mIncomingMidiAvailable = false;
+
+
     // main state
     AudioProcessorValueTreeState mState;
     UndoManager                  mUndoManager;
 
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SonobusAudioProcessor)
 };
 
 

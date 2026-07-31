@@ -25,7 +25,7 @@ bool SamplePlaybackManager::loadFileFromSample(TimeSliceThread &fileReadThread)
     auto audioFileUrl = sample->getFileURL();
 
 #if ! (JUCE_IOS || JUCE_ANDROID)
-    if (audioFileUrl.isLocalFile()) {
+    if (audioFileUrl.isLocalFile() && !audioFileUrl.getLocalFile().getFileExtension().containsIgnoreCase("mogg") && !audioFileUrl.getLocalFile().getFileExtension().containsIgnoreCase("m0gg")) {
         reader = formatManager.createReaderFor(audioFileUrl.getLocalFile());
     }
     else

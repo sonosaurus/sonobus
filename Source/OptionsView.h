@@ -103,10 +103,13 @@ protected:
     std::unique_ptr<Viewport> mAudioOptionsViewport;
     std::unique_ptr<Viewport> mOtherOptionsViewport;
     std::unique_ptr<Viewport> mRecordOptionsViewport;
+    std::unique_ptr<Viewport> mMidiOptionsViewport;
 
 
     std::unique_ptr<Component> mOptionsComponent;
     std::unique_ptr<Component> mRecOptionsComponent;
+    std::unique_ptr<Component> mMidiOptionsComponent;
+
 
     int minOptionsHeight = 0;
     int minRecOptionsHeight = 0;
@@ -150,6 +153,12 @@ protected:
     std::unique_ptr<Label> mOptionsLanguageLabel;
     std::unique_ptr<ToggleButton> mOptionsUnivFontButton;
 
+    std::unique_ptr<SonoChoiceButton> mMidiRelayDeviceChoice;
+    std::unique_ptr<SonoChoiceButton> mMidiLearnDeviceChoice;
+    std::unique_ptr<Label> mMidiRelayDeviceLabel;
+    std::unique_ptr<Label> mMidiLearnDeviceLabel;
+
+
 
     std::unique_ptr<Label> mOptionsRecFilesStaticLabel;
     std::unique_ptr<ToggleButton> mOptionsRecMixButton;
@@ -186,6 +195,11 @@ protected:
     FlexBox optionsAllowBluetoothBox;
     FlexBox optionsAutoDropThreshBox;
     FlexBox optionsPluginDefaultBox;
+
+    FlexBox midiOptionsBox;
+    FlexBox midiRelayBox;
+    FlexBox midiLearnBox;
+
 
     FlexBox recOptionsBox;
     FlexBox optionsRecordFormatBox;
