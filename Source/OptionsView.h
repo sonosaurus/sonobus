@@ -136,6 +136,8 @@ protected:
     std::unique_ptr<ToggleButton> mOptionsSliderSnapToMouseButton;
     std::unique_ptr<ToggleButton> mOptionsAllowBluetoothInput;
     std::unique_ptr<ToggleButton> mOptionsDisableShortcutButton;
+    std::unique_ptr<ToggleButton> mOptionsRememberLocalSoloButton;
+    std::unique_ptr<ToggleButton> mOptionsRememberPeerSoloButton;
     std::unique_ptr<TextButton> mOptionsSavePluginDefaultButton;
     std::unique_ptr<TextButton> mOptionsResetPluginDefaultButton;
 
@@ -181,6 +183,8 @@ protected:
     FlexBox optionsAutoReconnectBox;
     FlexBox optionsSnapToMouseBox;
     FlexBox optionsDisableShortcutsBox;
+    FlexBox optionsRememberLocalSoloBox;
+    FlexBox optionsRememberPeerSoloBox;
     FlexBox optionsDefaultLevelBox;
     FlexBox optionsLanguageBox;
     FlexBox optionsAllowBluetoothBox;

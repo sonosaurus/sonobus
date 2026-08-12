@@ -562,6 +562,11 @@ public:
     void setChangingDefaultRecvAudioCodecSetsExisting(bool flag) { mChangingDefaultRecvAudioCodecChangesAll = flag; }
     bool getChangingDefaultRecvAudioCodecSetsExisting() const { return mChangingDefaultRecvAudioCodecChangesAll;}
 
+    void setRememberLocalTrackSolo(bool flag) { mRememberLocalTrackSolo = flag; }
+    bool getRememberLocalTrackSolo() const { return mRememberLocalTrackSolo; }
+    void setRememberPeerSolo(bool flag) { mRememberPeerSolo = flag; }
+    bool getRememberPeerSolo() const { return mRememberPeerSolo; }
+
     
     String getAudioCodeFormatName(int formatIndex) const;
     bool getAudioCodeFormatInfo(int formatIndex, AudioCodecFormatInfo & retinfo) const;
@@ -850,6 +855,7 @@ private:
         int numMultiChanGroups = 0;
         bool modifiedChanGroups = false;
         int orderPriority = -1;
+        bool soloed = false;
     };
 
     // key is peer name
@@ -1020,6 +1026,8 @@ private:
     
     bool mChangingDefaultAudioCodecChangesAll = false;
     bool mChangingDefaultRecvAudioCodecChangesAll = false;
+    bool mRememberLocalTrackSolo = true;
+    bool mRememberPeerSolo = true;
 
     RangedAudioParameter * mDefaultAutoNetbufModeParam;
     RangedAudioParameter * mTempoParameter;

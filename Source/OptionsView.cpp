@@ -271,6 +271,12 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOptionsDisableShortcutButton = std::make_unique<ToggleButton>(TRANS("Disable keyboard shortcuts"));
     mOptionsDisableShortcutButton->addListener(this);
 
+    mOptionsRememberLocalSoloButton = std::make_unique<ToggleButton>(TRANS("Remember Local Track Solo"));
+    mOptionsRememberLocalSoloButton->addListener(this);
+
+    mOptionsRememberPeerSoloButton = std::make_unique<ToggleButton>(TRANS("Remember Peer Solo"));
+    mOptionsRememberPeerSoloButton->addListener(this);
+
 #if JUCE_IOS
     if (JUCEApplicationBase::isStandaloneApp()) {
         mOptionsAllowBluetoothInput = std::make_unique<ToggleButton>(TRANS("Allow Bluetooth Input"));
@@ -397,6 +403,8 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     }
     mOptionsComponent->addAndMakeVisible(mOptionsSliderSnapToMouseButton.get());
     mOptionsComponent->addAndMakeVisible(mOptionsDisableShortcutButton.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsRememberLocalSoloButton.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsRememberPeerSoloButton.get());
 
 
 
@@ -640,6 +648,8 @@ void OptionsView::updateState(bool ignorecheck)
 
     mOptionsSliderSnapToMouseButton->setToggleState(processor.getSlidersSnapToMousePosition(), dontSendNotification);
     mOptionsDisableShortcutButton->setToggleState(processor.getDisableKeyboardShortcuts(), dontSendNotification);
+    mOptionsRememberLocalSoloButton->setToggleState(processor.getRememberLocalTrackSolo(), dontSendNotification);
+    mOptionsRememberPeerSoloButton->setToggleState(processor.getRememberPeerSolo(), dontSendNotification);
 
     uint32 recmask = processor.getDefaultRecordingOptions();
 
@@ -795,6 +805,16 @@ void OptionsView::updateLayout()
     optionsDisableShortcutsBox.items.add(FlexItem(10, 12).withFlex(0));
     optionsDisableShortcutsBox.items.add(FlexItem(180, minpassheight, *mOptionsDisableShortcutButton).withMargin(0).withFlex(1));
 
+    optionsRememberLocalSoloBox.items.clear();
+    optionsRememberLocalSoloBox.flexDirection = FlexBox::Direction::row;
+    optionsRememberLocalSoloBox.items.add(FlexItem(10, 12).withFlex(0));
+    optionsRememberLocalSoloBox.items.add(FlexItem(180, minpassheight, *mOptionsRememberLocalSoloButton).withMargin(0).withFlex(1));
+
+    optionsRememberPeerSoloBox.items.clear();
+    optionsRememberPeerSoloBox.flexDirection = FlexBox::Direction::row;
+    optionsRememberPeerSoloBox.items.add(FlexItem(10, 12).withFlex(0));
+    optionsRememberPeerSoloBox.items.add(FlexItem(180, minpassheight, *mOptionsRememberPeerSoloButton).withMargin(0).withFlex(1));
+
 
     optionsAllowBluetoothBox.items.clear();
     optionsAllowBluetoothBox.flexDirection = FlexBox::Direction::row;
@@ -840,6 +860,8 @@ void OptionsView::updateLayout()
         optionsBox.items.add(FlexItem(100, minpassheight, optionsCheckForUpdateBox).withMargin(2).withFlex(0));
     }
     optionsBox.items.add(FlexItem(100, minpassheight, optionsDisableShortcutsBox).withMargin(2).withFlex(0));
+    optionsBox.items.add(FlexItem(100, minpassheight, optionsRememberLocalSoloBox).withMargin(2).withFlex(0));
+    optionsBox.items.add(FlexItem(100, minpassheight, optionsRememberPeerSoloBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(100, minpassheight, optionsDynResampleBox).withMargin(2).withFlex(0));
 
     if ( ! JUCEApplicationBase::isStandaloneApp()) {
@@ -1167,6 +1189,12 @@ void OptionsView::buttonClicked (Button* buttonThatWasClicked)
         if (updateKeybindings) {
             updateKeybindings();
         }
+    }
+    else if (buttonThatWasClicked == mOptionsRememberLocalSoloButton.get()) {
+        processor.setRememberLocalTrackSolo(mOptionsRememberLocalSoloButton->getToggleState());
+    }
+    else if (buttonThatWasClicked == mOptionsRememberPeerSoloButton.get()) {
+        processor.setRememberPeerSolo(mOptionsRememberPeerSoloButton->getToggleState());
     }
     else if (buttonThatWasClicked == mOptionsSavePluginDefaultButton.get()) {
         processor.saveCurrentAsDefaultPluginSettings();
