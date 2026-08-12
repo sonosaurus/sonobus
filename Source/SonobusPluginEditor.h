@@ -215,6 +215,22 @@ private:
     
     String generateNewUsername(const AooServerConnectionInfo & info);
 
+    // Access-denied retry state for connectToServer: a login rejection
+    // (username already active) can mean either a genuinely different
+    // peer already holds that name, or our own prior session that the
+    // server hasn't timed out yet after a drop/restart. We can't tell
+    // these apart from a single rejection, so we retry the original
+    // name a few times before falling back to an auto-incremented one.
+    // mConnectRetryBaseUsername stays set for the whole retry+fallback
+    // sequence (cleared only on a definitive outcome) so a successful
+    // connect -- even under a fallback name -- still remembers the
+    // original name as the default for next time, rather than letting
+    // an incremented name compound across sessions.
+    String mConnectRetryBaseUsername;
+    int mConnectRetryCount = 0;
+    static constexpr int mConnectRetryMaxAttempts = 3;
+    static constexpr int mConnectRetryDelayMs = 2500;
+
 
 
     void openFileBrowser();

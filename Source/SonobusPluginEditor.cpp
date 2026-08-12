@@ -3880,37 +3880,94 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
         }
         else if (ev.type == ClientEvent::ConnectEvent) {
             String statstr;
+            // Captured once, up front, on any successful outcome -- the
+            // in-progress retry base name (if any) needs to survive
+            // just long enough to be used for the recents entry below,
+            // but retry state itself must not leak into whatever
+            // connect attempt comes next, regardless of which success
+            // sub-branch runs.
+            String retriedFromBaseUsername;
             if (ev.success) {
-                statstr = TRANS("Connected to server");                
+                statstr = TRANS("Connected to server");
+                retriedFromBaseUsername = mConnectRetryBaseUsername;
+                mConnectRetryBaseUsername.clear();
+                mConnectRetryCount = 0;
             } else {
                 if (String(ev.message).contains("access denied")) {
-                    statstr = TRANS("Already connected with this user name");
 
-                    // try again with different username (auto-incremented)
-                    currConnectionInfo.userName = generateNewUsername(currConnectionInfo);
+                    // First rejection for this connect attempt: remember
+                    // the name the user actually asked for, before we
+                    // touch currConnectionInfo.userName at all.
+                    if (mConnectRetryBaseUsername.isEmpty()) {
+                        mConnectRetryBaseUsername = currConnectionInfo.userName;
+                    }
 
-                    DBG("Trying again with name: " << currConnectionInfo.userName);
-                    connectWithInfo(currConnectionInfo, true);
-                    
-                    return;
-                    
+                    if (mConnectRetryCount < mConnectRetryMaxAttempts) {
+                        // Could be our own stale session from a recent
+                        // drop/restart, not yet timed out server-side --
+                        // retry the ORIGINAL name a few times before
+                        // assuming it's genuinely taken by someone else.
+                        ++mConnectRetryCount;
+                        statstr = TRANS("Already connected with this user name, retrying...");
+
+                        DBG("Access denied, retry " << mConnectRetryCount << "/" << mConnectRetryMaxAttempts << " with original name: " << mConnectRetryBaseUsername);
+
+                        Timer::callAfterDelay(mConnectRetryDelayMs, [this]() {
+                            currConnectionInfo.userName = mConnectRetryBaseUsername;
+                            connectWithInfo(currConnectionInfo, true);
+                        });
+
+                        return;
+                    }
+                    else {
+                        statstr = TRANS("Already connected with this user name");
+
+                        // Retries exhausted -- fall back to an
+                        // auto-incremented name, built from the
+                        // original base name (not whatever
+                        // currConnectionInfo.userName currently holds).
+                        AooServerConnectionInfo basedinfo = currConnectionInfo;
+                        basedinfo.userName = mConnectRetryBaseUsername;
+                        currConnectionInfo.userName = generateNewUsername(basedinfo);
+
+                        DBG("Retries exhausted, trying again with name: " << currConnectionInfo.userName);
+                        connectWithInfo(currConnectionInfo, true);
+
+                        return;
+                    }
+
                 } else {
                     statstr = TRANS("Connect failed: ") + ev.message;
+                    // definitive non-retriable failure -- reset retry state
+                    mConnectRetryBaseUsername.clear();
+                    mConnectRetryCount = 0;
                 }
 
             }
-            
+
             // we might already have autojoined a group, only attempt if we haven't
             if (processor.getCurrentJoinedGroup().isEmpty()) {
-                
+
                 // now attempt to join group
                 if (ev.success) {
-                    
+
                     if (currConnectionInfo.groupName.isNotEmpty()) {
-                        
+
                         currConnectionInfo.timestamp = Time::getCurrentTime().toMilliseconds();
-                        processor.addRecentServerConnectionInfo(currConnectionInfo);
-                        
+
+                        // Remember the ORIGINAL requested name as the
+                        // default for next time, even if this session
+                        // ended up connecting under a fallback name --
+                        // otherwise an auto-incremented name compounds
+                        // across future sessions/reconnects.
+                        if (retriedFromBaseUsername.isNotEmpty()) {
+                            AooServerConnectionInfo toRemember = currConnectionInfo;
+                            toRemember.userName = retriedFromBaseUsername;
+                            processor.addRecentServerConnectionInfo(toRemember);
+                        } else {
+                            processor.addRecentServerConnectionInfo(currConnectionInfo);
+                        }
+
                         processor.setWatchPublicGroups(false);
                         
                         processor.joinServerGroup(currConnectionInfo.groupName, currConnectionInfo.groupPassword, currConnectionInfo.groupIsPublic);
