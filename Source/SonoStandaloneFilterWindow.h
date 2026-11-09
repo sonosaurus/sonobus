@@ -40,6 +40,10 @@
 #include <limits>
 #include <algorithm>
 
+#if JUCE_WINDOWS
+ #include <shellapi.h>
+#endif
+
 namespace juce
 {
 
@@ -985,8 +989,43 @@ public:
     }
 
     //==============================================================================
+#if JUCE_WINDOWS
+    bool isCloseToTrayEnabled() const
+    {
+        if (auto* props = pluginHolder->settings.get())
+            return props->getBoolValue (closeToTraySetting);
+
+        return false;
+    }
+
+    void setCloseToTrayEnabled (bool enabled)
+    {
+        if (auto* props = pluginHolder->settings.get())
+            props->setValue (closeToTraySetting, enabled);
+    }
+#endif
+
     void closeButtonPressed() override
     {
+#if JUCE_WINDOWS
+        if (isCloseToTrayEnabled())
+        {
+            if (trayIcon == nullptr)
+                trayIcon = std::make_unique<TrayIcon> (*this);
+
+            if (trayIcon->isRegistered())
+                setVisible (false);
+            else
+            {
+                trayIcon.reset();
+                AlertWindow::showMessageBoxAsync (AlertWindow::WarningIcon, getName(),
+                                                 TRANS("Could not add SonoBus to the system tray."), {}, this);
+            }
+
+            return;
+        }
+#endif
+
         pluginHolder->savePluginState();
 
         JUCEApplicationBase::getInstance()->systemRequestedQuit();
@@ -1042,6 +1081,77 @@ public:
 
     
 private:
+#if JUCE_WINDOWS
+    static constexpr auto closeToTraySetting = "closeToTray";
+
+    class TrayIcon final : public SystemTrayIconComponent
+    {
+    public:
+        explicit TrayIcon (StandaloneFilterWindow& window) : owner (window)
+        {
+            setIconImage (ImageCache::getFromMemory (BinaryData::sonobus_logo_96_png,
+                                                    BinaryData::sonobus_logo_96_pngSize), {});
+            setIconTooltip (owner.getName());
+        }
+
+        bool isRegistered() const
+        {
+            // JUCE's setIconImage does not report whether the Windows shell accepted the icon.
+            if (const auto* icon = static_cast<const NOTIFYICONDATA*> (getNativeHandle()))
+            {
+                auto data = *icon;
+                return Shell_NotifyIcon (NIM_MODIFY, &data) != FALSE;
+            }
+
+            return false;
+        }
+
+        void mouseDown (const MouseEvent& event) override
+        {
+            const Component::SafePointer<StandaloneFilterWindow> window (&owner);
+
+            if (event.mods.isRightButtonDown())
+            {
+                PopupMenu menu;
+                menu.addItem (1, TRANS("Restore"));
+                menu.addItem (2, TRANS("Quit"));
+                menu.showMenuAsync (PopupMenu::Options(), [window] (int result)
+                {
+                    if (window == nullptr || result == 0)
+                        return;
+
+                    // Restore first so the normal quit flow can show any confirmation.
+                    window->restoreFromTray();
+                    if (result == 2)
+                        JUCEApplicationBase::getInstance()->systemRequestedQuit();
+                });
+            }
+            else if (event.mods.isLeftButtonDown())
+            {
+                // The tray component must outlive the native mouse callback.
+                MessageManager::callAsync ([window]
+                {
+                    if (window != nullptr)
+                        window->restoreFromTray();
+                });
+            }
+        }
+
+    private:
+        StandaloneFilterWindow& owner;
+    };
+
+    void restoreFromTray()
+    {
+        setVisible (true);
+        setMinimised (false);
+        toFront (true);
+        trayIcon.reset();
+    }
+
+    std::unique_ptr<TrayIcon> trayIcon;
+#endif
+
     //==============================================================================
     class MainContentComponent  : public Component,
                                   private Value::Listener,
