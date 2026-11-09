@@ -58,6 +58,7 @@ extern juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter();
 #include "SonoLookAndFeel.h"
 
 #include "SonobusPluginEditor.h"
+#include "SonobusTypes.h"
 
 #if JUCE_ANDROID
 #include "android/SonoBusActivity.h"
@@ -115,6 +116,39 @@ public:
     const String getApplicationName() override              { return JucePlugin_Name; }
     const String getApplicationVersion() override           { return JucePlugin_VersionString; }
     bool moreThanOneInstanceAllowed() override              { return true; }
+
+#if JUCE_WINDOWS
+    void getAllCommands (Array<CommandID>& commands) override
+    {
+        JUCEApplication::getAllCommands (commands);
+        commands.add (SonobusCommands::CloseToTray);
+    }
+
+    void getCommandInfo (CommandID commandID, ApplicationCommandInfo& result) override
+    {
+        if (commandID == SonobusCommands::CloseToTray)
+        {
+            result.setInfo (TRANS("Close to tray"), TRANS("Keep SonoBus running in the system tray when the window is closed"),
+                            "Application", 0);
+            result.setActive (mainWindow != nullptr);
+            result.setTicked (mainWindow != nullptr && mainWindow->isCloseToTrayEnabled());
+            return;
+        }
+
+        JUCEApplication::getCommandInfo (commandID, result);
+    }
+
+    bool perform (const InvocationInfo& info) override
+    {
+        if (info.commandID == SonobusCommands::CloseToTray && mainWindow != nullptr)
+        {
+            mainWindow->setCloseToTrayEnabled (! mainWindow->isCloseToTrayEnabled());
+            return true;
+        }
+
+        return JUCEApplication::perform (info);
+    }
+#endif
 
     SonoLookAndFeel  sonoLNF;
 

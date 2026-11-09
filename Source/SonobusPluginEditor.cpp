@@ -5983,6 +5983,9 @@ PopupMenu SonobusAudioProcessorEditor::SonobusMenuBarModel::getMenuForIndex (int
 
 #if (JUCE_WINDOWS || JUCE_LINUX)
             retval.addCommandItem (&parent.commandManager, SonobusCommands::ShowOptions);
+#if JUCE_WINDOWS
+            retval.addCommandItem (&parent.commandManager, SonobusCommands::CloseToTray);
+#endif
             retval.addSeparator();
             retval.addCommandItem (&parent.commandManager, StandardApplicationCommandIDs::quit);
 #endif
